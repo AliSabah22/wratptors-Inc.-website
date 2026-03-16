@@ -27,9 +27,9 @@ export default function TrophyCanvas() {
 
     const scene = new THREE.Scene();
     scene.background = null as unknown as THREE.Color;
-    const defaultH = 200;
-    const camera = new THREE.PerspectiveCamera(35, 1, 0.01, 500);
-    camera.position.set(0, 0, 4);
+    const defaultH = 240;
+    const camera = new THREE.PerspectiveCamera(38, 1, 0.01, 500);
+    camera.position.set(0, -0.2, 5.0);
     camera.lookAt(0, 0, 0);
     camera.updateProjectionMatrix();
 
@@ -67,20 +67,18 @@ export default function TrophyCanvas() {
         box.getSize(size);
         box.getCenter(center);
         model.position.sub(center);
-        const TARGET = 1.4;
+        const TARGET = 1.35;
         const maxDim = Math.max(size.x, size.y, size.z) || 1;
         model.scale.setScalar(TARGET / maxDim);
         const box2 = new THREE.Box3().setFromObject(model);
         const center2 = new THREE.Vector3();
         box2.getCenter(center2);
         model.position.sub(center2);
+        model.position.y -= 0.3;
         model.rotation.y = 0;
         model.rotation.x = -0.1;
         modelRef.current = model;
-        const distance = (TARGET / 2) / Math.tan((camera.fov * Math.PI / 180) / 2) * 1.4;
-        camera.position.z = distance;
-        camera.lookAt(0, 0, 0);
-        camera.updateProjectionMatrix();
+        (window as unknown as { trophyModel?: THREE.Object3D }).trophyModel = model;
         if (statsInViewRef.current) runEntrance(model);
       },
       (xhr) => {

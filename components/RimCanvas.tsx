@@ -15,8 +15,8 @@ export default function RimCanvas() {
 
     const scene = new THREE.Scene();
     scene.background = null as unknown as THREE.Color;
-    const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 500);
-    camera.position.set(0, 0, 2.8);
+    const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 500);
+    camera.position.set(0, 0, 2.5);
     camera.lookAt(0, 0, 0);
     camera.updateProjectionMatrix();
 
@@ -27,66 +27,65 @@ export default function RimCanvas() {
     container.appendChild(renderer.domElement);
     renderer.domElement.style.willChange = 'transform';
 
-    scene.add(new THREE.AmbientLight(0x555555, 0.7));
-    const pl1 = new THREE.PointLight(0xffe4a0, 2.5, 12);
-    pl1.position.set(1.2, 2, 1.2);
-    scene.add(pl1);
-    const pl2 = new THREE.PointLight(0xc8a96e, 1.5, 12);
-    pl2.position.set(-1.2, 0, 1);
-    scene.add(pl2);
+    const rimAmbient = new THREE.AmbientLight(0xc8a96e, 0.8);
+    rimAmbient.name = 'rimAmbient';
+    scene.add(rimAmbient);
+    const rimKey = new THREE.PointLight(0xffe4a0, 3.0, 8);
+    rimKey.position.set(1.5, 2, 2);
+    scene.add(rimKey);
+    const rimFill = new THREE.PointLight(0xc8a96e, 1.5, 6);
+    rimFill.position.set(-1, 0, 1.5);
+    scene.add(rimFill);
+    const rimBack = new THREE.PointLight(0xffffff, 0.8, 5);
+    rimBack.position.set(0, -1, -2);
+    scene.add(rimBack);
 
     let modelRef: THREE.Object3D | null = null;
+    let baseY = 0;
 
     const loader = new GLTFLoader();
     loader.load(
       '/assets/Rims.glb',
       (gltf) => {
         const model = gltf.scene;
-        model.traverse((child) => {
-          if ((child as THREE.Mesh).isMesh) {
-            const m = child as THREE.Mesh;
-            m.castShadow = true;
-            m.receiveShadow = true;
-          }
-        });
         scene.add(model);
         const box = new THREE.Box3().setFromObject(model);
-        const size = new THREE.Vector3();
         const center = new THREE.Vector3();
-        box.getSize(size);
+        const size = new THREE.Vector3();
         box.getCenter(center);
+        box.getSize(size);
         model.position.sub(center);
-        const TARGET = 1.2;
         const maxDim = Math.max(size.x, size.y, size.z) || 1;
-        model.scale.setScalar(TARGET / maxDim);
+        model.scale.setScalar(1.6 / maxDim);
         const box2 = new THREE.Box3().setFromObject(model);
         const center2 = new THREE.Vector3();
         box2.getCenter(center2);
         model.position.sub(center2);
         model.rotation.x = Math.PI / 2;
-        modelRef = model;
-        const distance = (TARGET / 2) / Math.tan((camera.fov * Math.PI / 180) / 2) * 1.4;
-        camera.position.z = distance;
-        camera.lookAt(0, 0, 0);
-        camera.updateProjectionMatrix();
-
-        gsap.from(model.rotation, {
-          y: model.rotation.y - Math.PI * 2,
-          duration: 1.2,
-          ease: 'power3.out',
+        model.rotation.z = 0;
+        model.rotation.y = -Math.PI;
+        model.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) {
+            const m = child as THREE.Mesh;
+            m.material = new THREE.MeshStandardMaterial({
+              color: 0xc8a96e,
+              metalness: 0.95,
+              roughness: 0.06,
+              emissive: 0xc8a96e,
+              emissiveIntensity: 0.1,
+            });
+            m.castShadow = true;
+          }
         });
-
-        const card = document.querySelector('.service-card:nth-child(11)');
-        if (card) {
-          card.addEventListener('mouseenter', () => {
-            gsap.to(model.rotation, { y: model.rotation.y + Math.PI * 2, duration: 0.9, ease: 'power2.inOut' });
-          });
-        }
+        gsap.to(model.rotation, { y: 0, duration: 1.2, ease: 'power3.out' });
+        gsap.from(model.scale, { x: 0, y: 0, z: 0, duration: 0.9, ease: 'back.out(2)' });
+        modelRef = model;
+        baseY = model.position.y;
+        (window as unknown as { rimModel?: THREE.Object3D; rimBaseY?: number }).rimModel = model;
+        (window as unknown as { rimBaseY?: number }).rimBaseY = baseY;
       },
-      (xhr) => {
-        if (xhr.lengthComputable) console.log('Loading:', ((xhr.loaded / xhr.total) * 100).toFixed(0) + '%');
-      },
-      (err) => console.warn('Rim failed:', err)
+      undefined,
+      (err) => console.warn('Rim failed to load:', err)
     );
 
     const resize = () => {
@@ -109,8 +108,8 @@ export default function RimCanvas() {
       }
       rimTime += 0.016;
       if (modelRef) {
-        (modelRef as THREE.Object3D & { rotation: THREE.Euler }).rotation.y += 0.012;
-        modelRef.position.y = Math.sin(rimTime * 1.3) * 0.04;
+        (modelRef as THREE.Object3D & { rotation: THREE.Euler }).rotation.z += 0.01;
+        modelRef.position.y = baseY + Math.sin(rimTime * 1.0) * 0.05;
       }
       renderer.render(scene, camera);
       rafId = requestAnimationFrame(animate);

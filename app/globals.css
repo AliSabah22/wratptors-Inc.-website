@@ -62,12 +62,15 @@ body {
   transition: opacity 0.8s ease;
 }
 .loader.hidden { opacity: 0; pointer-events: none; }
-.loader-logo {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(3rem, 8vw, 6rem);
-  letter-spacing: 0.15em;
-  color: var(--gold);
-  text-shadow: 0 0 60px rgba(200,169,110,0.4);
+.loader-logo-canvas {
+  width: clamp(280px, 55vw, 420px);
+  height: clamp(280px, 55vw, 420px);
+  position: relative;
+}
+.loader-logo-canvas canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
 }
 .loader-bar-wrap {
   width: 200px;
@@ -319,7 +322,7 @@ section { padding: 7rem 8%; }
 #trophy-wrap,
 .trophy-canvas-wrap {
   width: 100%;
-  height: 200px;
+  height: 240px;
   background: linear-gradient(to bottom, rgba(200,169,110,0.04), transparent);
   border-bottom: 1px solid rgba(200,169,110,0.15);
   display: flex;

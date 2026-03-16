@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import CustomCursor from '@/components/CustomCursor';
 import Loader from '@/components/Loader';
@@ -18,6 +18,16 @@ import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
 import { useReveal } from '@/hooks/useReveal';
 
+declare global {
+  interface Window {
+    heroCarModel?: unknown;
+    rimModel?: unknown;
+    caliperModel?: unknown;
+    cardModel?: unknown;
+    trophyModel?: unknown;
+  }
+}
+
 export default function Home() {
   const [loaderDone, setLoaderDone] = useState(false);
 
@@ -26,6 +36,18 @@ export default function Home() {
   }, []);
 
   useReveal(loaderDone);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      console.log('=== WRAPTORS 3D STATUS ===');
+      console.log('Hero car:', window.heroCarModel ? 'LOADED' : 'MISSING');
+      console.log('Rim:', window.rimModel ? 'LOADED' : 'MISSING');
+      console.log('Caliper:', window.caliperModel ? 'LOADED' : 'MISSING');
+      console.log('Credit card:', window.cardModel ? 'LOADED' : 'MISSING');
+      console.log('Trophy:', window.trophyModel ? 'LOADED' : 'MISSING');
+    }, 3000);
+    return () => clearTimeout(t);
+  }, []);
 
   return (
     <>

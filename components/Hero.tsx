@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import gsap from 'gsap';
 
 const HERO_TEXTS = [
@@ -17,13 +18,12 @@ const HERO_TEXTS = [
 
 const THRESHOLDS = [0, 0.2, 0.4, 0.6, 0.75, 0.9];
 
-const CAMERA_POSITIONS = [
-  { x: 0, y: 0.9, z: 5.8 },
-  { x: 2.6, y: 1.0, z: 4.2 },
-  { x: 0, y: 2.2, z: 3.2 },
-  { x: -2.6, y: 1.0, z: 4.2 },
-  { x: 0, y: 0.4, z: 4.8 },
-  { x: 0, y: 0.9, z: 5.2 },
+const HERO_CAMERA_SEGMENTS = [
+  { x: -2.0, y: 0.9, z: 6.0, lookX: 0.8, lookY: 0.5, lookZ: 0 },
+  { x: 0, y: 5.0, z: 2.5, lookX: 0.8, lookY: 0.5, lookZ: 0 },
+  { x: 3.5, y: 0.9, z: 4.0, lookX: 0, lookY: 0.5, lookZ: 0 },
+  { x: 0, y: 0.6, z: 5.5, lookX: 0.8, lookY: 0.6, lookZ: 0 },
+  { x: 0, y: 0.6, z: 5.5, lookX: 0.8, lookY: 0.6, lookZ: 0 },
 ];
 
 export default function Hero() {
@@ -61,9 +61,10 @@ export default function Hero() {
 
     const scene = new THREE.Scene();
     scene.background = null as unknown as THREE.Color;
-    const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 1000);
-    camera.position.set(0, 1.0, 6);
-    camera.lookAt(0, 0.3, 0);
+    scene.fog = new THREE.FogExp2(0x0a0a0a, 0.06);
+    const camera = new THREE.PerspectiveCamera(42, 1, 0.01, 1000);
+    camera.position.set(-2.0, 0.9, 6.0);
+    camera.lookAt(0.8, 0.5, 0);
     camera.updateProjectionMatrix();
 
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -71,72 +72,97 @@ export default function Hero() {
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.localClippingEnabled = false;
+    renderer.setClearColor(0x000000, 0);
     container.appendChild(renderer.domElement);
     renderer.domElement.style.willChange = 'transform';
 
     scene.add(new THREE.AmbientLight(0x333333, 0.65));
-    const keyLight = new THREE.SpotLight(0xffffff, 4);
+    const keyLight = new THREE.SpotLight(0xffffff, 0.5);
     keyLight.position.set(3, 6, 4);
     keyLight.castShadow = true;
+    keyLight.color.set(0xffffff);
     (keyLight.shadow as THREE.SpotLightShadow).mapSize.width = 2048;
     (keyLight.shadow as THREE.SpotLightShadow).mapSize.height = 2048;
-    keyLight.angle = Math.PI / 6;
-    keyLight.penumbra = 0.3;
+    keyLight.angle = Math.PI / 8;
+    keyLight.penumbra = 0.6;
     scene.add(keyLight);
-    const fillLight = new THREE.SpotLight(0xc8a96e, 2);
+    const fillLight = new THREE.SpotLight(0xc8a96e, 1.2);
     fillLight.position.set(-4, 3, 2);
+    fillLight.color.set(0xc8a96e);
     fillLight.angle = Math.PI / 5;
     fillLight.penumbra = 0.5;
     scene.add(fillLight);
-    const rimLight = new THREE.SpotLight(0xffe4a0, 2.5);
+    const carFront = new THREE.DirectionalLight(0xffffff, 1.2);
+    carFront.position.set(0, 2, 6);
+    scene.add(carFront);
+    const rimLight = new THREE.SpotLight(0xffe4a0, 1.0);
     rimLight.position.set(0, 2, -5);
-    rimLight.angle = Math.PI / 4;
-    rimLight.penumbra = 0.2;
+    rimLight.angle = Math.PI / 6;
+    rimLight.penumbra = 0.5;
     scene.add(rimLight);
-    const underGlow = new THREE.PointLight(0xc8a96e, 0.2, 4);
-    underGlow.position.set(0, -0.5, 0);
-    scene.add(underGlow);
+    const pmremGenerator = new THREE.PMREMGenerator(renderer);
+    pmremGenerator.compileEquirectangularShader();
+    const envTexture = pmremGenerator.fromScene(new RoomEnvironment()).texture;
+    scene.environment = envTexture;
 
-    const floorGeo = new THREE.PlaneGeometry(40, 40);
-    const floorMat = new THREE.MeshStandardMaterial({
-      color: 0x0a0a0a,
-      metalness: 0.9,
-      roughness: 0.1,
+    const shadowGeo = new THREE.PlaneGeometry(4, 2);
+    const shadowMat = new THREE.MeshBasicMaterial({
+      color: 0x000000,
+      transparent: true,
+      opacity: 0.35,
+      depthWrite: false,
     });
-    const floor = new THREE.Mesh(floorGeo, floorMat);
-    floor.rotation.x = -Math.PI / 2;
-    floor.position.y = 0;
-    floor.receiveShadow = true;
-    scene.add(floor);
+    const shadow = new THREE.Mesh(shadowGeo, shadowMat);
+    shadow.rotation.x = -Math.PI / 2;
+    shadow.position.y = 0.01;
+    scene.add(shadow);
 
-    const nParticles = 800;
+    // Golden dust particles: keep Y outside the car's vertical band (car sits ~0.3–1.8)
+    // so particles don't render in front of the car and create "clipping through dust"
+    const nParticles = 600;
     const pPos = new Float32Array(nParticles * 3);
+    const carYMin = -0.3;
+    const carYMax = 1.9;
     for (let i = 0; i < nParticles; i++) {
-      const angle = (i / nParticles) * Math.PI * 2 + Math.random() * 0.5;
-      const r = 3.5;
-      pPos[i * 3] = Math.cos(angle) * r + (Math.random() - 0.5) * 0.5;
-      pPos[i * 3 + 1] = (Math.random() - 0.5) * 2;
-      pPos[i * 3 + 2] = Math.sin(angle) * r + (Math.random() - 0.5) * 0.5;
+      pPos[i * 3] = (Math.random() - 0.5) * 28;
+      const yRand = Math.random();
+      pPos[i * 3 + 1] = yRand < 0.5
+        ? carYMin - Math.random() * 7.5
+        : carYMax + Math.random() * 6.5;
+      pPos[i * 3 + 2] = (Math.random() - 0.5) * 28;
     }
     const pGeo = new THREE.BufferGeometry();
     pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
-    const particles = new THREE.Points(
-      pGeo,
-      new THREE.PointsMaterial({
-        color: 0xc8a96e,
-        size: 0.03,
-        transparent: true,
-        opacity: 0.5,
-        depthWrite: false,
-      })
-    );
+    const canvas2d = document.createElement('canvas');
+    canvas2d.width = 32;
+    canvas2d.height = 32;
+    const ctx = canvas2d.getContext('2d')!;
+    const gradient = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+    gradient.addColorStop(0, 'rgba(200, 169, 110, 1)');
+    gradient.addColorStop(0.4, 'rgba(200, 169, 110, 0.8)');
+    gradient.addColorStop(1, 'rgba(200, 169, 110, 0)');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 32, 32);
+    const particleTexture = new THREE.CanvasTexture(canvas2d);
+    const particleMaterial = new THREE.PointsMaterial({
+      color: 0xc8a96e,
+      size: 0.06,
+      sizeAttenuation: true,
+      transparent: true,
+      opacity: 0.5,
+      alphaTest: 0.01,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      map: particleTexture,
+    });
+    const particles = new THREE.Points(pGeo, particleMaterial);
     scene.add(particles);
     particlesRef.current = particles;
     particlesPosRef.current = pPos;
 
     const loader = new GLTFLoader();
     loader.load(
-      '/assets/car model.glb',
+      '/assets/hypercar%2B3d%2Bmodel.glb',
       (gltf) => {
         const model = gltf.scene;
         model.traverse((child) => {
@@ -148,24 +174,30 @@ export default function Hero() {
         });
         scene.add(model);
         const box = new THREE.Box3().setFromObject(model);
-        const size = new THREE.Vector3();
         const center = new THREE.Vector3();
-        box.getSize(size);
+        const size = new THREE.Vector3();
         box.getCenter(center);
-        model.position.sub(center);
-        const TARGET = 3.0;
-        const maxDim = Math.max(size.x, size.y, size.z) || 1;
-        model.scale.setScalar(TARGET / maxDim);
-        const box2 = new THREE.Box3().setFromObject(model);
-        const center2 = new THREE.Vector3();
-        box2.getCenter(center2);
-        model.position.sub(center2);
-        const box3 = new THREE.Box3().setFromObject(model);
-        const minY = box3.min.y;
-        model.position.y = -minY;
-        model.rotation.y = Math.PI;
+        box.getSize(size);
+        model.position.x = -center.x;
+        model.position.z = -center.z;
+        model.position.y = -box.min.y;
+        const targetWidth = 3.2;
+        const scaleF = targetWidth / size.x;
+        model.scale.setScalar(scaleF);
+        model.position.x = 0.8;
+        model.rotation.y = Math.PI * 0.75;
+
+        const finalBox = new THREE.Box3().setFromObject(model);
+        const carBottom = finalBox.min.y;
+        model.position.y += -carBottom + 0.01;
+
+        shadow.scale.x = (finalBox.max.x - finalBox.min.x) * 0.9;
+        shadow.scale.z = (finalBox.max.z - finalBox.min.z) * 1.1;
+
         model.castShadow = true;
         carRef.current = model;
+        (window as unknown as { heroCarModel?: THREE.Object3D }).heroCarModel = model;
+        console.log('car loaded');
 
         gsap.from(model.rotation, {
           y: model.rotation.y - Math.PI * 1.5,
@@ -221,15 +253,21 @@ export default function Hero() {
       const scrolled = -rect.top;
       const progress = Math.max(0, Math.min(1, scrolled / scrollHeight));
 
-      const idx = Math.min(5, Math.floor(progress * 5.99));
-      const nextIdx = Math.min(5, idx + 1);
-      const t = progress * 5.99 - idx;
-      const a = CAMERA_POSITIONS[idx];
-      const b = CAMERA_POSITIONS[nextIdx];
+      let idx = 0;
+      if (progress < 0.2) idx = 0;
+      else if (progress < 0.4) idx = 1;
+      else if (progress < 0.6) idx = 2;
+      else if (progress < 0.8) idx = 3;
+      else idx = 4;
+      const nextIdx = Math.min(4, idx + 1);
+      const segmentProgress = progress < 0.2 ? progress / 0.2 : progress < 0.4 ? (progress - 0.2) / 0.2 : progress < 0.6 ? (progress - 0.4) / 0.2 : progress < 0.8 ? (progress - 0.6) / 0.2 : (progress - 0.8) / 0.2;
+      const a = HERO_CAMERA_SEGMENTS[idx];
+      const b = HERO_CAMERA_SEGMENTS[nextIdx];
+      const t = segmentProgress;
       camera.position.x = a.x + (b.x - a.x) * t;
       camera.position.y = a.y + (b.y - a.y) * t;
       camera.position.z = a.z + (b.z - a.z) * t;
-      camera.lookAt(0, 0.3, 0);
+      camera.lookAt(a.lookX + (b.lookX - a.lookX) * t, a.lookY + (b.lookY - a.lookY) * t, a.lookZ + (b.lookZ - a.lookZ) * t);
 
       if (particlesRef.current) {
         particlesRef.current.rotation.y += 0.002;
@@ -238,7 +276,6 @@ export default function Hero() {
       const car = carRef.current;
       if (car) {
         car.rotation.y += (targetRotY - car.rotation.y) * 0.03;
-        car.position.y = Math.sin(heroTime * 0.8) * 0.02;
       }
 
       renderer.render(scene, camera);
@@ -250,9 +287,10 @@ export default function Hero() {
       window.removeEventListener('resize', resizeHero);
       window.removeEventListener('mousemove', onMouseMove);
       cancelAnimationFrame(rafId);
-      floorGeo.dispose();
-      floorMat.dispose();
+      shadowGeo.dispose();
+      shadowMat.dispose();
       pGeo.dispose();
+      (particles.material as THREE.PointsMaterial).map?.dispose();
       (particles.material as THREE.Material).dispose();
       renderer.dispose();
       if (container.contains(renderer.domElement)) container.removeChild(renderer.domElement);
