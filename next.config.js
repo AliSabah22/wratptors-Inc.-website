@@ -5,6 +5,12 @@ const nextConfig = {
     remotePatterns: [
       { protocol: 'https', hostname: '**' },
       { protocol: 'http', hostname: '**' },
+      {
+        protocol: 'https',
+        hostname: 'www.wraptorsinc.com',
+        pathname: '/wp-content/uploads/**',
+      },
+      { protocol: 'https', hostname: 'preferredmechanic.ca' },
     ],
   },
 };
