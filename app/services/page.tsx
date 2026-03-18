@@ -1,6 +1,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import PartnerLogos from '@/components/PartnerLogos';
+import FadeUp from '@/src/components/animations/FadeUp';
+import SlideIn from '@/src/components/animations/SlideIn';
+import StaggerContainer from '@/src/components/animations/StaggerContainer';
 
 export const metadata = {
   title: 'Our Services | Wraptors Inc.',
@@ -170,18 +173,22 @@ export default function ServicesHubPage() {
             Home → Services
           </div>
           <div style={{ marginTop: 20 }}>
-            <HubSectionTag />
+            <FadeUp delay={0.05}>
+              <HubSectionTag />
+            </FadeUp>
           </div>
-          <h1
-            style={{
-              ...fontBebas,
-              fontSize: 'clamp(3rem, 5vw, 6rem)',
-              lineHeight: 0.88,
-              marginTop: 10,
-            }}
-          >
-            SERVICES
-          </h1>
+          <FadeUp>
+            <h1
+              style={{
+                ...fontBebas,
+                fontSize: 'clamp(3rem, 5vw, 6rem)',
+                lineHeight: 0.88,
+                marginTop: 10,
+              }}
+            >
+              SERVICES
+            </h1>
+          </FadeUp>
 
           <p
             style={{
@@ -236,119 +243,127 @@ export default function ServicesHubPage() {
               >
                 {imageFirst ? (
                   <>
-                    <div style={{ position: 'relative', minHeight: 360 }}>
-                      <Image
-                        src={s.imageUrl}
-                        alt={s.imageAlt}
-                        fill
-                        placeholder="blur"
-                        blurDataURL={blurDataURL}
-                        unoptimized={false}
-                        sizes="(max-width: 768px) 100vw, 700px"
-                        style={{ objectFit: 'cover' }}
-                      />
-                    </div>
-                    <div style={{ padding: '1.5rem 0' }}>
-                      <h2
-                        style={{
-                          ...fontBebas,
-                          color: 'var(--white)',
-                          fontSize: 'clamp(2.2rem, 3.6vw, 4rem)',
-                          lineHeight: 0.9,
-                        }}
-                      >
-                        {s.heading}
-                      </h2>
-                      <p
-                        style={{
-                          ...fontDM,
-                          color: 'var(--muted)',
-                          lineHeight: 2.0,
-                          marginTop: 16,
-                          whiteSpace: 'pre-line',
-                        }}
-                      >
-                        {s.body}
-                      </p>
-                      <div style={{ marginTop: 22 }}>
-                        <Link
-                          href={s.ctaHref}
+                    <SlideIn direction="left" delay={0}>
+                      <div style={{ position: 'relative', minHeight: 360 }}>
+                        <Image
+                          src={s.imageUrl}
+                          alt={s.imageAlt}
+                          fill
+                          placeholder="blur"
+                          blurDataURL={blurDataURL}
+                          unoptimized={false}
+                          sizes="(max-width: 768px) 100vw, 700px"
+                          style={{ objectFit: 'cover' }}
+                        />
+                      </div>
+                    </SlideIn>
+                    <SlideIn direction="right" delay={0}>
+                      <div style={{ padding: '1.5rem 0' }}>
+                        <h2
                           style={{
-                            color: 'var(--gold)',
-                            fontFamily: "'DM Sans', sans-serif",
-                            textDecoration: 'none',
-                            fontSize: 12,
-                            letterSpacing: '0.2em',
-                            textTransform: 'uppercase',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 8,
-                            borderBottom: '1px solid rgba(200,169,110,0.25)',
-                            paddingBottom: 4,
+                            ...fontBebas,
+                            color: 'var(--white)',
+                            fontSize: 'clamp(2.2rem, 3.6vw, 4rem)',
+                            lineHeight: 0.9,
                           }}
                         >
-                          {s.ctaLabel} <span aria-hidden>→</span>
-                        </Link>
+                          {s.heading}
+                        </h2>
+                        <p
+                          style={{
+                            ...fontDM,
+                            color: 'var(--muted)',
+                            lineHeight: 2.0,
+                            marginTop: 16,
+                            whiteSpace: 'pre-line',
+                          }}
+                        >
+                          {s.body}
+                        </p>
+                        <div style={{ marginTop: 22 }}>
+                          <Link
+                            href={s.ctaHref}
+                            style={{
+                              color: 'var(--gold)',
+                              fontFamily: "'DM Sans', sans-serif",
+                              textDecoration: 'none',
+                              fontSize: 12,
+                              letterSpacing: '0.2em',
+                              textTransform: 'uppercase',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 8,
+                              borderBottom: '1px solid rgba(200,169,110,0.25)',
+                              paddingBottom: 4,
+                            }}
+                          >
+                            {s.ctaLabel} <span aria-hidden>→</span>
+                          </Link>
+                        </div>
                       </div>
-                    </div>
+                    </SlideIn>
                   </>
                 ) : (
                   <>
-                    <div style={{ padding: '1.5rem 0' }}>
-                      <h2
-                        style={{
-                          ...fontBebas,
-                          color: 'var(--white)',
-                          fontSize: 'clamp(2.2rem, 3.6vw, 4rem)',
-                          lineHeight: 0.9,
-                        }}
-                      >
-                        {s.heading}
-                      </h2>
-                      <p
-                        style={{
-                          ...fontDM,
-                          color: 'var(--muted)',
-                          lineHeight: 2.0,
-                          marginTop: 16,
-                          whiteSpace: 'pre-line',
-                        }}
-                      >
-                        {s.body}
-                      </p>
-                      <div style={{ marginTop: 22 }}>
-                        <Link
-                          href={s.ctaHref}
+                    <SlideIn direction="right" delay={0}>
+                      <div style={{ padding: '1.5rem 0' }}>
+                        <h2
                           style={{
-                            color: 'var(--gold)',
-                            fontFamily: "'DM Sans', sans-serif",
-                            textDecoration: 'none',
-                            fontSize: 12,
-                            letterSpacing: '0.2em',
-                            textTransform: 'uppercase',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 8,
-                            borderBottom: '1px solid rgba(200,169,110,0.25)',
-                            paddingBottom: 4,
+                            ...fontBebas,
+                            color: 'var(--white)',
+                            fontSize: 'clamp(2.2rem, 3.6vw, 4rem)',
+                            lineHeight: 0.9,
                           }}
                         >
-                          {s.ctaLabel} <span aria-hidden>→</span>
-                        </Link>
+                          {s.heading}
+                        </h2>
+                        <p
+                          style={{
+                            ...fontDM,
+                            color: 'var(--muted)',
+                            lineHeight: 2.0,
+                            marginTop: 16,
+                            whiteSpace: 'pre-line',
+                          }}
+                        >
+                          {s.body}
+                        </p>
+                        <div style={{ marginTop: 22 }}>
+                          <Link
+                            href={s.ctaHref}
+                            style={{
+                              color: 'var(--gold)',
+                              fontFamily: "'DM Sans', sans-serif",
+                              textDecoration: 'none',
+                              fontSize: 12,
+                              letterSpacing: '0.2em',
+                              textTransform: 'uppercase',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 8,
+                              borderBottom: '1px solid rgba(200,169,110,0.25)',
+                              paddingBottom: 4,
+                            }}
+                          >
+                            {s.ctaLabel} <span aria-hidden>→</span>
+                          </Link>
+                        </div>
                       </div>
-                    </div>
-                    <div style={{ position: 'relative', minHeight: 360 }}>
-                      <Image
-                        src={s.imageUrl}
-                        alt={s.imageAlt}
-                        fill
-                        placeholder="blur"
-                        blurDataURL={blurDataURL}
-                        unoptimized={false}
-                        sizes="(max-width: 768px) 100vw, 700px"
-                        style={{ objectFit: 'cover' }}
-                      />
-                    </div>
+                    </SlideIn>
+                    <SlideIn direction="left" delay={0}>
+                      <div style={{ position: 'relative', minHeight: 360 }}>
+                        <Image
+                          src={s.imageUrl}
+                          alt={s.imageAlt}
+                          fill
+                          placeholder="blur"
+                          blurDataURL={blurDataURL}
+                          unoptimized={false}
+                          sizes="(max-width: 768px) 100vw, 700px"
+                          style={{ objectFit: 'cover' }}
+                        />
+                      </div>
+                    </SlideIn>
                   </>
                 )}
               </div>
@@ -358,7 +373,9 @@ export default function ServicesHubPage() {
       </section>
 
       {/* PARTNER LOGOS */}
-      <PartnerLogos />
+      <StaggerContainer staggerDelay={0.06}>
+        <PartnerLogos />
+      </StaggerContainer>
     </div>
   );
 }

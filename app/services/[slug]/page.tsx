@@ -5,6 +5,9 @@ import { SERVICES as SERVICE_TEXTS } from '@/src/data/content';
 import QuoteForm from '@/components/QuoteForm';
 import ThreeStepsProcess from '@/components/ThreeStepsProcess';
 import PartnerLogos from '@/components/PartnerLogos';
+import FadeUp from '@/src/components/animations/FadeUp';
+import SlideIn from '@/src/components/animations/SlideIn';
+import ScaleIn from '@/src/components/animations/ScaleIn';
 
 const blurDataURL =
   'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/wAARCAABAAEDASIAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8AJQAB/9k=';
@@ -679,9 +682,11 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
           <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 10, letterSpacing: '0.35em', textTransform: 'uppercase', color: 'var(--gold)' }}>
             SERVICES
           </div>
-          <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(3rem, 6vw, 7rem)', lineHeight: 0.88, marginTop: 14 }}>
-            {spec.displayName}
-          </h1>
+          <FadeUp delay={0.1}>
+            <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(3rem, 6vw, 7rem)', lineHeight: 0.88, marginTop: 14 }}>
+              {spec.displayName}
+            </h1>
+          </FadeUp>
           <Breadcrumb items={['Home', 'Services', spec.displayName]} />
         </div>
       </section>
@@ -690,25 +695,33 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
       <section style={{ padding: '5rem 8%' }}>
         <div style={{ maxWidth: 1400, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, alignItems: 'center' }}>
           <div>
-            <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(2.2rem, 3.8vw, 4rem)', lineHeight: 0.88 }}>{spec.feature.heading}</h2>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", color: 'var(--muted)', lineHeight: 2.0, marginTop: 16, whiteSpace: 'pre-line' }}>{spec.feature.body}</p>
+            <FadeUp delay={0}>
+              <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(2.2rem, 3.8vw, 4rem)', lineHeight: 0.88 }}>{spec.feature.heading}</h2>
+            </FadeUp>
+            <FadeUp delay={0.1}>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", color: 'var(--muted)', lineHeight: 2.0, marginTop: 16, whiteSpace: 'pre-line' }}>{spec.feature.body}</p>
+            </FadeUp>
             <div style={{ marginTop: 24 }}>
-              <a href="#quote-form" className="btn-gold" style={{ display: 'inline-block', textDecoration: 'none' }}>
-                GET A QUOTE <span aria-hidden style={{ marginLeft: 8 }}>→</span>
-              </a>
+              <FadeUp delay={0.2}>
+                <a href="#quote-form" className="btn-gold" style={{ display: 'inline-block', textDecoration: 'none' }}>
+                  GET A QUOTE <span aria-hidden style={{ marginLeft: 8 }}>→</span>
+                </a>
+              </FadeUp>
             </div>
           </div>
-          <div style={{ position: 'relative', minHeight: 420 }}>
-            <Image
-              src={spec.feature.imageUrl}
-              alt={spec.feature.imageAlt}
-              fill
-              placeholder="blur"
-              blurDataURL={blurDataURL}
-              unoptimized={false}
-              style={{ objectFit: 'cover' }}
-            />
-          </div>
+          <ScaleIn delay={0.15}>
+            <div style={{ position: 'relative', minHeight: 420 }}>
+              <Image
+                src={spec.feature.imageUrl}
+                alt={spec.feature.imageAlt}
+                fill
+                placeholder="blur"
+                blurDataURL={blurDataURL}
+                unoptimized={false}
+                style={{ objectFit: 'cover' }}
+              />
+            </div>
+          </ScaleIn>
         </div>
       </section>
 
@@ -716,16 +729,49 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
       <section style={{ padding: '0 8% 5rem' }}>
         <div style={{ maxWidth: 1400, margin: '0 auto' }}>
           {benefits.map((b, idx) => {
+            const slideDir: 'left' | 'right' =
+              b.kind === 'image-right' || b.kind === 'tinting'
+                ? 'right'
+                : b.kind === 'image-left'
+                  ? 'left'
+                  : 'left';
             if (b.kind === 'image-left' || b.kind === 'image-right') {
               const imageSideLeft = b.kind === 'image-left';
               return (
-                <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, alignItems: 'center', marginTop: idx === 0 ? 0 : 60 }}>
-                  {imageSideLeft && (
-                    <div style={{ position: 'relative', minHeight: 360 }}>
-                      <Image src={b.imageUrl} alt={b.imageAlt} fill placeholder="blur" blurDataURL={blurDataURL} unoptimized={false} style={{ objectFit: 'cover' }} />
+                <SlideIn key={idx} direction={slideDir} delay={0}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, alignItems: 'center', marginTop: idx === 0 ? 0 : 60 }}>
+                    {imageSideLeft && (
+                      <div style={{ position: 'relative', minHeight: 360 }}>
+                        <Image src={b.imageUrl} alt={b.imageAlt} fill placeholder="blur" blurDataURL={blurDataURL} unoptimized={false} style={{ objectFit: 'cover' }} />
+                      </div>
+                    )}
+                    <div>
+                      <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--white)', fontSize: 'clamp(1.8rem, 3vw, 3.2rem)', lineHeight: 0.88 }}>{b.heading}</h3>
+                      <p style={{ fontFamily: "'DM Sans', sans-serif", color: 'var(--muted)', lineHeight: 2.0, marginTop: 16, whiteSpace: 'pre-line' }}>{b.body}</p>
+                      {b.bullets && b.bullets.length > 0 && (
+                        <ul style={{ fontFamily: "'DM Sans', sans-serif", marginTop: 14, color: 'var(--muted)', lineHeight: 1.9, paddingLeft: 18 }}>
+                          {b.bullets.map((t) => (
+                            <li key={t} style={{ marginTop: 6 }}>
+                              {t}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
-                  )}
-                  <div>
+                    {!imageSideLeft && (
+                      <div style={{ position: 'relative', minHeight: 360 }}>
+                        <Image src={b.imageUrl} alt={b.imageAlt} fill placeholder="blur" blurDataURL={blurDataURL} unoptimized={false} style={{ objectFit: 'cover' }} />
+                      </div>
+                    )}
+                  </div>
+                </SlideIn>
+              );
+            }
+
+            if (b.kind === 'text-only') {
+              return (
+                <SlideIn key={idx} direction={slideDir} delay={0}>
+                  <div style={{ marginTop: idx === 0 ? 0 : 60 }}>
                     <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--white)', fontSize: 'clamp(1.8rem, 3vw, 3.2rem)', lineHeight: 0.88 }}>{b.heading}</h3>
                     <p style={{ fontFamily: "'DM Sans', sans-serif", color: 'var(--muted)', lineHeight: 2.0, marginTop: 16, whiteSpace: 'pre-line' }}>{b.body}</p>
                     {b.bullets && b.bullets.length > 0 && (
@@ -738,30 +784,7 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
                       </ul>
                     )}
                   </div>
-                  {!imageSideLeft && (
-                    <div style={{ position: 'relative', minHeight: 360 }}>
-                      <Image src={b.imageUrl} alt={b.imageAlt} fill placeholder="blur" blurDataURL={blurDataURL} unoptimized={false} style={{ objectFit: 'cover' }} />
-                    </div>
-                  )}
-                </div>
-              );
-            }
-
-            if (b.kind === 'text-only') {
-              return (
-                <div key={idx} style={{ marginTop: idx === 0 ? 0 : 60 }}>
-                  <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", color: 'var(--white)', fontSize: 'clamp(1.8rem, 3vw, 3.2rem)', lineHeight: 0.88 }}>{b.heading}</h3>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", color: 'var(--muted)', lineHeight: 2.0, marginTop: 16, whiteSpace: 'pre-line' }}>{b.body}</p>
-                  {b.bullets && b.bullets.length > 0 && (
-                    <ul style={{ fontFamily: "'DM Sans', sans-serif", marginTop: 14, color: 'var(--muted)', lineHeight: 1.9, paddingLeft: 18 }}>
-                      {b.bullets.map((t) => (
-                        <li key={t} style={{ marginTop: 6 }}>
-                          {t}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
+                </SlideIn>
               );
             }
 

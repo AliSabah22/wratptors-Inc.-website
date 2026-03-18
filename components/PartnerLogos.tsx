@@ -17,7 +17,12 @@ const PARTNERS: Array<{ name: string; href: string; imageUrl?: string }> = [
   },
 ];
 
-export default function PartnerLogos() {
+type PartnerLogosProps = { logoImageHeight?: number };
+
+export default function PartnerLogos({ logoImageHeight }: PartnerLogosProps = {}) {
+  const mafiaHeight = logoImageHeight ?? 28;
+  const mafiaWidth = logoImageHeight ? Math.round(110 * (logoImageHeight / 28)) : 110;
+
   return (
     <section style={{ background: '#0A0A0A', padding: '5rem 8%' }}>
       <div style={{ maxWidth: 1400, margin: '0 auto', textAlign: 'center' }}>
@@ -63,8 +68,8 @@ export default function PartnerLogos() {
                 <Image
                   src={p.imageUrl}
                   alt={p.name}
-                  width={110}
-                  height={28}
+                  width={mafiaWidth}
+                  height={mafiaHeight}
                   placeholder="blur"
                   blurDataURL={blurDataURL}
                   unoptimized={false}

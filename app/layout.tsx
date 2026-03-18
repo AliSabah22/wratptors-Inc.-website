@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import Nav from '@/components/Nav';
 import Footer from '@/components/Footer';
+import PageTransition from '@/src/components/animations/PageTransition';
 
 export const metadata: Metadata = {
   title: "Wraptors Inc. — World's Largest Vehicle Wrap Shop",
@@ -18,7 +19,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Nav />
-        {children}
+        <PageTransition>{children}</PageTransition>
         <Footer />
       </body>
     </html>

@@ -2,6 +2,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import type React from 'react';
+import FadeUp from '@/src/components/animations/FadeUp';
+import SlideIn from '@/src/components/animations/SlideIn';
 
 export const metadata = {
   title: "About Wraptors | World's Largest Vehicle Wrap Shop",
@@ -83,37 +85,44 @@ export default function AboutPage() {
           />
         </div>
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 1400, margin: '0 auto' }}>
-          <SectionTag>WHO WE ARE</SectionTag>
-          <h1
-            style={{
-              ...fontBebas,
-              fontSize: 'clamp(5rem, 9vw, 11rem)',
-              letterSpacing: '0.01em',
-              lineHeight: 0.85,
-              color: 'var(--white)',
-              marginTop: '1.25rem',
-            }}
-          >
-            ABOUT WRAPTORS
-          </h1>
-          <div
-            style={{
-              marginTop: '0.75rem',
-              fontSize: 10,
-              letterSpacing: '0.35em',
-              textTransform: 'uppercase',
-              color: 'var(--gold)',
-              ...fontDM,
-            }}
-          >
-            Home / About
-          </div>
+          <FadeUp delay={0}>
+            <SectionTag>WHO WE ARE</SectionTag>
+          </FadeUp>
+          <FadeUp delay={0.1}>
+            <h1
+              style={{
+                ...fontBebas,
+                fontSize: 'clamp(5rem, 9vw, 11rem)',
+                letterSpacing: '0.01em',
+                lineHeight: 0.85,
+                color: 'var(--white)',
+                marginTop: '1.25rem',
+              }}
+            >
+              ABOUT WRAPTORS
+            </h1>
+          </FadeUp>
+          <FadeUp delay={0.2}>
+            <div
+              style={{
+                marginTop: '0.75rem',
+                fontSize: 10,
+                letterSpacing: '0.35em',
+                textTransform: 'uppercase',
+                color: 'var(--gold)',
+                ...fontDM,
+              }}
+            >
+              Home / About
+            </div>
+          </FadeUp>
         </div>
       </section>
 
       {/* SECTION 2 — RATED NUMBER ONE */}
       <section style={{ background: '#0A0A0A', padding: '5rem 8%' }}>
         <div style={{ maxWidth: 1400, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, alignItems: 'stretch' }}>
+          <SlideIn direction="left" delay={0.1}>
           <div style={{ padding: '2rem 0' }}>
             <h2 style={{ ...fontBebas, fontSize: 'clamp(3rem, 5vw, 6rem)', lineHeight: 0.88, color: 'var(--white)' }}>
               WRAPTORS RATED NUMBER ONE CAR BOUTIQUE
@@ -133,6 +142,8 @@ export default function AboutPage() {
               owners across the country.
             </p>
           </div>
+          </SlideIn>
+          <SlideIn direction="right" delay={0.2}>
           <div style={{ position: 'relative', minHeight: 420 }}>
             <Link href="/services/vehicle-wrapping" style={{ display: 'block', position: 'relative', width: '100%', height: '100%' }}>
               <Image
@@ -147,6 +158,7 @@ export default function AboutPage() {
               />
             </Link>
           </div>
+          </SlideIn>
         </div>
       </section>
 
