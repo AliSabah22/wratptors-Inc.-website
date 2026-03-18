@@ -3,10 +3,12 @@
 import { useState, useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { applyModelCorrection, recenterAfterTransform } from '@/lib/modelBounds';
+import { loaderLogoTransforms, modelTargetDisplaySizes } from '@/lib/transformConfigs';
 
 const LOADER_DURATION_MS = 1500;
-const ROTATION_SPEED = (Math.PI * 2) / 10; // one full turn every 10 seconds
-const INITIAL_ROTATION_Y = 0; // front of logo faces camera at start (tweak if needed, e.g. Math.PI)
+const ROTATION_SPEED = (Math.PI * 2) / 10;
+const INITIAL_ROTATION_Y = 0;
 
 type LoaderProps = {
   onFinish: () => void;
@@ -17,7 +19,6 @@ export default function Loader({ onFinish }: LoaderProps) {
   const canvasWrapRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number>(0);
 
-  // Progress bar and finish logic
   useEffect(() => {
     const bar = document.getElementById('loaderBar');
     const text = document.getElementById('loaderText');
@@ -39,7 +40,6 @@ export default function Loader({ onFinish }: LoaderProps) {
     requestAnimationFrame(tick);
   }, [onFinish]);
 
-  // Three.js logo canvas and rotation
   useEffect(() => {
     const wrap = canvasWrapRef.current;
     if (!wrap) return;
@@ -67,39 +67,39 @@ export default function Loader({ onFinish }: LoaderProps) {
     scene.add(fill);
 
     let model: THREE.Object3D | null = null;
-    const loader = new GLTFLoader();
-    const modelUrl = '/assets/Logo%20Model.glb';
-    loader.load(
-      modelUrl,
-      (gltf) => {
-        model = gltf.scene;
-        scene.add(model);
-        model.rotation.y = INITIAL_ROTATION_Y;
+    const onLogoLoaded = (gltf: { scene: THREE.Group }) => {
+      model = gltf.scene;
+      scene.add(model);
+      model.rotation.y = INITIAL_ROTATION_Y;
 
-        const box = new THREE.Box3().setFromObject(model);
-        const center = box.getCenter(new THREE.Vector3());
-        const size = box.getSize(new THREE.Vector3());
-        model.position.x = -center.x;
-        model.position.y = -center.y;
-        model.position.z = -center.z;
-        const maxDim = Math.max(size.x, size.y, size.z);
-        const scale = 2.0 / maxDim;
-        model.scale.setScalar(scale);
-        const boxAfter = new THREE.Box3().setFromObject(model);
-        const centerAfter = boxAfter.getCenter(new THREE.Vector3());
-        model.position.x = -centerAfter.x;
-        model.position.y = -centerAfter.y;
-        model.position.z = -centerAfter.z;
-      },
+      const targetDisplaySize = modelTargetDisplaySizes.loaderLogo;
+      applyModelCorrection(model, { targetDisplaySize });
+      recenterAfterTransform(model);
+      const layout = loaderLogoTransforms.desktop;
+      model.position.x = layout.position[0];
+      model.position.y = layout.position[1];
+      model.position.z = layout.position[2];
+      model.rotation.x = layout.rotation[0];
+      model.rotation.y += layout.rotation[1];
+      model.rotation.z = layout.rotation[2];
+      model.scale.multiplyScalar(layout.scale);
+    };
+    const onLogoError = () => {
+      const geo = new THREE.TorusKnotGeometry(0.4, 0.12, 64, 16);
+      const mat = new THREE.MeshStandardMaterial({ color: 0xc8a96e });
+      const mesh = new THREE.Mesh(geo, mat);
+      model = mesh;
+      mesh.rotation.y = INITIAL_ROTATION_Y;
+      scene.add(mesh);
+    };
+
+    const gltfLoader = new GLTFLoader();
+    gltfLoader.load(
+      '/assets/Logo%20Model.glb',
+      onLogoLoaded,
       undefined,
-      () => {
-        // Fallback placeholder if load fails
-        const geo = new THREE.TorusKnotGeometry(0.4, 0.12, 64, 16);
-        const mat = new THREE.MeshStandardMaterial({ color: 0xc8a96e });
-        const mesh = new THREE.Mesh(geo, mat);
-        model = mesh;
-        mesh.rotation.y = INITIAL_ROTATION_Y;
-        scene.add(mesh);
+      (err) => {
+        gltfLoader.load('/assets/Logo Model.glb', onLogoLoaded, undefined, () => onLogoError());
       }
     );
 
@@ -113,11 +113,16 @@ export default function Loader({ onFinish }: LoaderProps) {
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     };
     resize();
+    const resizeAfterLayout = () => {
+      requestAnimationFrame(() => resize());
+    };
+    resizeAfterLayout();
     window.addEventListener('resize', resize);
 
     let lastTime = performance.now();
     const animate = () => {
       rafRef.current = requestAnimationFrame(animate);
+      if (!wrap.contains(renderer.domElement)) return;
       const now = performance.now();
       const dt = (now - lastTime) / 1000;
       lastTime = now;

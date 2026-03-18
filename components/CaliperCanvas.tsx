@@ -15,116 +15,95 @@ export default function CaliperCanvas() {
 
     const scene = new THREE.Scene();
     scene.background = null as unknown as THREE.Color;
-    const camera = new THREE.PerspectiveCamera(42, 1, 0.01, 500);
-    camera.position.set(0, 0.3, 3.0);
+    const camera = new THREE.PerspectiveCamera(44, 300 / 230, 0.01, 500);
+    camera.position.set(0, 0.15, 2.4);
     camera.lookAt(0, 0, 0);
+    camera.near = 0.01;
+    camera.far = 500;
     camera.updateProjectionMatrix();
 
     const renderer = new THREE.WebGLRenderer({ alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.localClippingEnabled = false;
-    renderer.setSize(300, 220);
+    renderer.setSize(300, 230);
     container.appendChild(renderer.domElement);
-    renderer.domElement.style.cssText = 'width:100%; height:220px; display:block; position:absolute; top:0; left:0; z-index:1;';
-    renderer.domElement.style.willChange = 'transform';
+    renderer.domElement.style.display = 'block';
+    renderer.domElement.style.width = '100%';
+    renderer.domElement.style.height = '100%';
 
-    const calLight1 = new THREE.AmbientLight(0xffffff, 1.5);
-    scene.add(calLight1);
-    const calLight2 = new THREE.PointLight(0xffe4a0, 5.0, 15);
-    calLight2.position.set(0, 3, 3);
-    scene.add(calLight2);
-    const calLight3 = new THREE.PointLight(0xc8a96e, 3.0, 10);
-    calLight3.position.set(-2, 0, 2);
-    scene.add(calLight3);
+    scene.add(new THREE.AmbientLight(0xffffff, 1.0));
+    const key = new THREE.PointLight(0xffe4a0, 4.0, 10);
+    key.position.set(2, 3, 3);
+    scene.add(key);
+    const fill = new THREE.PointLight(0xc8a96e, 2.5, 8);
+    fill.position.set(-2, 0, 2);
+    scene.add(fill);
+    const rim = new THREE.PointLight(0xffffff, 1.2, 6);
+    rim.position.set(0, -2, -2);
+    scene.add(rim);
 
-    let modelRef: THREE.Object3D | null = null;
-    let baseY = 0;
+    let groupRef: THREE.Group | null = null;
 
-    function setupCaliperModel(gltf: { scene: THREE.Group }) {
-      const model = gltf.scene;
-      scene.add(model);
-      const box = new THREE.Box3().setFromObject(model);
-      const center = new THREE.Vector3();
-      const size = new THREE.Vector3();
-      box.getCenter(center);
-      box.getSize(size);
-      model.position.sub(center);
-      const maxDim = Math.max(size.x, size.y, size.z) || 1;
-      model.scale.setScalar(1.3 / maxDim);
-      const box2 = new THREE.Box3().setFromObject(model);
-      const center2 = new THREE.Vector3();
-      box2.getCenter(center2);
-      model.position.sub(center2);
-      model.rotation.x = -0.2;
-      model.rotation.y = Math.PI / 3;
-      model.rotation.z = 0;
-      model.traverse((child) => {
-        if ((child as THREE.Mesh).isMesh) {
-          const m = child as THREE.Mesh;
-          m.material = new THREE.MeshStandardMaterial({
-            color: 0xc8a96e,
-            metalness: 0.95,
-            roughness: 0.05,
-            emissive: 0xc8a96e,
-            emissiveIntensity: 0.25,
-          });
-          m.castShadow = true;
-        }
-      });
-      gsap.from(model.rotation, { y: model.rotation.y - Math.PI, duration: 1.0, ease: 'power3.out' });
-      gsap.from(model.scale, { x: 0, y: 0, z: 0, duration: 0.8, ease: 'back.out(2)' });
-      modelRef = model;
-      baseY = model.position.y;
-      (window as unknown as { caliperModel?: THREE.Object3D; caliperBaseY?: number }).caliperModel = model;
-      (window as unknown as { caliperBaseY?: number }).caliperBaseY = baseY;
-      let meshCount = 0;
-      model.traverse((ch) => {
-        if ((ch as THREE.Mesh).isMesh) meshCount++;
-      });
-      console.log('CALIPER SETUP COMPLETE — meshes:', meshCount);
-    }
+    const goldMat = new THREE.MeshStandardMaterial({
+      color: 0xc8a96e,
+      metalness: 0.95,
+      roughness: 0.06,
+      emissive: 0xc8a96e,
+      emissiveIntensity: 0.22,
+    });
 
     const loader = new GLTFLoader();
     loader.load(
-      '/assets/break%20caliper.glb',
+      '/assets/Break%20caliper.glb',
       (gltf) => {
-        setupCaliperModel(gltf);
+        const model = gltf.scene;
+        const pivotGroup = new THREE.Group();
+        pivotGroup.add(model);
+        scene.add(pivotGroup);
+
+        model.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(model);
+        const center = new THREE.Vector3();
+        const size = new THREE.Vector3();
+        box.getCenter(center);
+        box.getSize(size);
+        model.position.sub(center);
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const TARGET = 1.7;
+        model.scale.setScalar(TARGET / maxDim);
+        const box2 = new THREE.Box3().setFromObject(model);
+        const center2 = new THREE.Vector3();
+        box2.getCenter(center2);
+        model.position.sub(center2);
+
+        pivotGroup.rotation.y = Math.PI / 3;
+        pivotGroup.rotation.x = -0.12;
+
+        model.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) {
+            const m = child as THREE.Mesh;
+            if (Array.isArray(m.material)) m.material.forEach((mat) => (mat as THREE.Material).dispose());
+            else if (m.material) (m.material as THREE.Material).dispose();
+            m.material = goldMat;
+          }
+        });
+
+        groupRef = pivotGroup;
+        gsap.from(pivotGroup.rotation, { y: pivotGroup.rotation.y - Math.PI, duration: 1.0, ease: 'power3.out' });
+        gsap.from(model.scale, { x: 0, y: 0, z: 0, duration: 0.8, ease: 'back.out(2)' });
       },
       undefined,
-      (err) => {
-        console.error('Caliper load failed with %20, trying raw space...', err);
-        loader.load(
-          '/assets/break caliper.glb',
-          (gltf2) => {
-            setupCaliperModel(gltf2);
-          },
-          undefined,
-          (err2) => {
-            console.error('CALIPER LOAD ERROR:', err2);
-            const caliperCard = document.querySelector('.service-card:nth-child(10)');
-            if (caliperCard) {
-              const placeholder = document.createElement('div');
-              placeholder.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:220px;display:flex;align-items:center;justify-content:center;z-index:1;font-family:\'Bebas Neue\',sans-serif;font-size:3.5rem;color:var(--border);';
-              placeholder.innerHTML = '10';
-              caliperCard.appendChild(placeholder);
-            }
-          }
-        );
-      }
+      (err) => console.error('Caliper load failed:', err)
     );
 
     const resize = () => {
       if (!containerRef.current) return;
-      const w = Math.max(containerRef.current.offsetWidth, 300);
-      const h = 220;
-      camera.aspect = w / h;
+      camera.aspect = 300 / 230;
       camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
+      renderer.setSize(300, 230);
     };
-    resize();
     window.addEventListener('resize', resize);
 
-    let caliperTime = 0;
+    let time = 0;
     let rafId: number;
 
     const animate = () => {
@@ -132,10 +111,10 @@ export default function CaliperCanvas() {
         rafId = requestAnimationFrame(animate);
         return;
       }
-      caliperTime += 0.014;
-      if (modelRef) {
-        modelRef.rotation.y += 0.006;
-        modelRef.position.y = baseY + Math.sin(caliperTime * 1.1) * 0.04;
+      time += 0.016;
+      if (groupRef) {
+        groupRef.rotation.y += 0.005;
+        groupRef.position.y = Math.sin(time * 1.1) * 0.04;
       }
       renderer.render(scene, camera);
       rafId = requestAnimationFrame(animate);
@@ -145,17 +124,11 @@ export default function CaliperCanvas() {
     return () => {
       window.removeEventListener('resize', resize);
       cancelAnimationFrame(rafId);
+      goldMat.dispose();
       renderer.dispose();
       if (container.contains(renderer.domElement)) container.removeChild(renderer.domElement);
     };
   }, []);
 
-  return (
-    <div
-      ref={containerRef}
-      id="caliper-canvas"
-      className="service-model-canvas"
-      style={{ width: '100%', height: 220, display: 'block', position: 'absolute', top: 0, left: 0, zIndex: 1 }}
-    />
-  );
+  return <div ref={containerRef} id="caliper-canvas" className="service-model-canvas" />;
 }

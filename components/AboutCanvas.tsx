@@ -4,6 +4,8 @@ import { useRef, useEffect } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import gsap from 'gsap';
+import { applyModelCorrection, recenterAfterTransform } from '@/lib/modelBounds';
+import { aboutWrapTransforms, modelTargetDisplaySizes, getBreakpoint } from '@/lib/transformConfigs';
 
 export default function AboutCanvas() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -22,7 +24,9 @@ export default function AboutCanvas() {
     const renderer = new THREE.WebGLRenderer({ alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.localClippingEnabled = false;
-    renderer.setSize(container.offsetWidth, container.offsetHeight);
+    const initW = container.offsetWidth || 600;
+    const initH = container.offsetHeight || 520;
+    renderer.setSize(initW, initH);
     container.appendChild(renderer.domElement);
     renderer.domElement.style.willChange = 'transform';
 
@@ -32,62 +36,74 @@ export default function AboutCanvas() {
     scene.add(pl);
 
     let modelRef: THREE.Object3D | null = null;
+    let baseRotationX = Math.PI / 6;
 
     const loader = new GLTFLoader();
-    loader.load(
-      '/assets/wrap.glb',
-      (gltf) => {
-        const model = gltf.scene;
-        model.traverse((child) => {
-          if ((child as THREE.Mesh).isMesh) {
-            const m = child as THREE.Mesh;
-            m.castShadow = true;
-            m.receiveShadow = true;
-          }
-        });
-        scene.add(model);
-        const box = new THREE.Box3().setFromObject(model);
-        const size = new THREE.Vector3();
-        const center = new THREE.Vector3();
-        box.getSize(size);
-        box.getCenter(center);
-        model.position.sub(center);
-        const TARGET = 1.4;
-        const maxDim = Math.max(size.x, size.y, size.z) || 1;
-        model.scale.setScalar(TARGET / maxDim);
-        const box2 = new THREE.Box3().setFromObject(model);
-        const center2 = new THREE.Vector3();
-        box2.getCenter(center2);
-        model.position.sub(center2);
-        model.position.z = 0.8;
-        model.rotation.x = Math.PI / 6;
-        model.rotation.y = Math.PI / 4;
-        modelRef = model;
-        const distance = (TARGET / 2) / Math.tan((camera.fov * Math.PI / 180) / 2) * 1.4;
-        camera.position.z = distance;
-        camera.lookAt(0, 0, 0);
-        camera.updateProjectionMatrix();
+    const WRAP_PATHS = ['/assets/pink%20wrap.glb', '/assets/pink wrap.glb'];
+    let wrapPathIndex = 0;
 
-        gsap.from(model.rotation, {
-          y: model.rotation.y + Math.PI,
-          duration: 1.6,
-          ease: 'power3.out',
-          delay: 0.2,
-        });
-        gsap.from(model.scale, {
-          x: 0,
-          y: 0,
-          z: 0,
-          duration: 1.0,
-          ease: 'back.out(1.7)',
-          delay: 0.2,
-        });
-      },
-      (xhr) => {
-        if (xhr.lengthComputable) console.log('Loading:', ((xhr.loaded / xhr.total) * 100).toFixed(0) + '%');
-      },
-      (err) => console.warn('Wrap roll failed:', err)
-    );
+    const onWrapLoaded = (gltf: { scene: THREE.Group }) => {
+      const model = gltf.scene;
+      model.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          const m = child as THREE.Mesh;
+          m.castShadow = true;
+          m.receiveShadow = true;
+        }
+      });
+      scene.add(model);
+
+      const targetDisplaySize = modelTargetDisplaySizes.aboutWrap;
+      applyModelCorrection(model, { targetDisplaySize });
+      recenterAfterTransform(model);
+
+      const layout = aboutWrapTransforms[getBreakpoint(window.innerWidth)];
+      model.position.x = layout.position[0];
+      model.position.y = layout.position[1];
+      model.position.z = layout.position[2];
+      model.rotation.x = layout.rotation[0];
+      model.rotation.y = layout.rotation[1];
+      model.rotation.z = layout.rotation[2];
+      model.scale.multiplyScalar(layout.scale);
+      baseRotationX = layout.rotation[0];
+      modelRef = model;
+
+      const distance = (targetDisplaySize / 2) / Math.tan((camera.fov * Math.PI) / 180 / 2) * 1.4;
+      camera.position.z = distance;
+      camera.lookAt(0, 0, 0);
+      camera.updateProjectionMatrix();
+
+      gsap.from(model.rotation, {
+        y: model.rotation.y + Math.PI,
+        duration: 1.6,
+        ease: 'power3.out',
+        delay: 0.2,
+      });
+      gsap.from(model.scale, {
+        x: 0,
+        y: 0,
+        z: 0,
+        duration: 1.0,
+        ease: 'back.out(1.7)',
+        delay: 0.2,
+      });
+    };
+
+    const onWrapProgress = (xhr: ProgressEvent<EventTarget>) => {
+      if (xhr.lengthComputable) console.log('Loading:', ((xhr.loaded / xhr.total) * 100).toFixed(0) + '%');
+    };
+
+    const onWrapError = (err: unknown) => {
+      wrapPathIndex++;
+      if (wrapPathIndex < WRAP_PATHS.length) {
+        console.warn('Wrap roll failed, trying fallback path...', err);
+        loader.load(WRAP_PATHS[wrapPathIndex], onWrapLoaded, onWrapProgress, onWrapError);
+      } else {
+        console.warn('Wrap roll failed:', err);
+      }
+    };
+
+    loader.load(WRAP_PATHS[wrapPathIndex], onWrapLoaded, onWrapProgress, onWrapError);
 
     const resize = () => {
       if (!containerRef.current) return;
@@ -110,7 +126,8 @@ export default function AboutCanvas() {
       aboutTime += 0.016;
       if (modelRef) {
         modelRef.rotation.y += 0.006;
-        (modelRef as THREE.Object3D & { rotation: THREE.Euler }).rotation.x = Math.PI / 6 + Math.sin(aboutTime * 0.7) * 0.15;
+        (modelRef as THREE.Object3D & { rotation: THREE.Euler }).rotation.x =
+          baseRotationX + Math.sin(aboutTime * 0.7) * 0.15;
         modelRef.position.y = Math.sin(aboutTime * 1.0) * 0.08;
       }
       renderer.render(scene, camera);

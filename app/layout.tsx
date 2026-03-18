@@ -1,16 +1,12 @@
 import type { Metadata } from 'next';
-import Script from 'next/script';
 import './globals.css';
+import Nav from '@/components/Nav';
+import Footer from '@/components/Footer';
 
 export const metadata: Metadata = {
   title: "Wraptors Inc. — World's Largest Vehicle Wrap Shop",
   description:
-    "The world's largest and most experienced vehicle wrap shop. 13 locations. 9,000+ vehicles wrapped. Vinyl wraps, PPF, tinting, detailing, custom interiors.",
-  openGraph: {
-    title: "Wraptors Inc. — World's Largest Vehicle Wrap Shop",
-    description:
-      "The world's largest and most experienced vehicle wrap shop. 13 locations. 9,000+ vehicles wrapped.",
-  },
+    "Rated number one car boutique. 13 locations across Canada, USA and South Africa. Over 9,000 vehicles wrapped. Vehicle wrapping, PPF, window tinting, detailing and more.",
 };
 
 export default function RootLayout({
@@ -21,15 +17,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Script
-          src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"
-          strategy="beforeInteractive"
-        />
-        <Script
-          src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"
-          strategy="afterInteractive"
-        />
+        <Nav />
         {children}
+        <Footer />
       </body>
     </html>
   );

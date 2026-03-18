@@ -1,15 +1,20 @@
 'use client';
 
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useState, useEffect } from 'react';
 
 const NAV_LINKS = [
-  { href: '#about', label: 'About' },
-  { href: '#services', label: 'Services' },
-  { href: '#locations', label: 'Locations' },
-  { href: '#reviews', label: 'Reviews' },
-  { href: '#contact', label: 'Contact' },
+  { href: '/', label: 'Home' },
+  { href: '/about', label: 'About' },
+  { href: '/services', label: 'Services' },
+  { href: '/locations', label: 'Locations' },
+  { href: '/contact', label: 'Contact' },
 ];
+
+const NavLogoCanvas = dynamic(() => import('./NavLogoCanvas'), {
+  ssr: false,
+});
 
 export default function Nav() {
   const [solid, setSolid] = useState(false);
@@ -24,8 +29,8 @@ export default function Nav() {
   return (
     <>
       <nav id="navbar" className={solid ? 'solid' : ''}>
-        <Link href="#" className="nav-logo">
-          WRAPTORS
+        <Link href="/" className="nav-logo" aria-label="Wraptors home">
+          <NavLogoCanvas />
         </Link>
         <ul className="nav-links">
           {NAV_LINKS.map(({ href, label }) => (
@@ -34,7 +39,7 @@ export default function Nav() {
             </li>
           ))}
         </ul>
-        <Link href="#contact" className="nav-cta">
+        <Link href="/contact" className="nav-cta">
           Get a Quote
         </Link>
         <button
@@ -65,7 +70,7 @@ export default function Nav() {
           </Link>
         ))}
         <Link
-          href="#contact"
+          href="/contact"
           onClick={() => setMobileOpen(false)}
           style={{ color: 'var(--gold)' }}
         >

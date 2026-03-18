@@ -1,7 +1,17 @@
 'use client';
 
+import Link from 'next/link';
 import dynamic from 'next/dynamic';
 
+const WrapCanvas = dynamic(() => import('@/components/WrapCanvas'), { ssr: false });
+const PolishingMachineCardCanvas = dynamic(() => import('@/components/PolishingMachineCardCanvas'), { ssr: false });
+const WindowTintCardCanvas = dynamic(() => import('@/components/WindowTintCardCanvas'), { ssr: false });
+const DetailingBrushCardCanvas = dynamic(() => import('@/components/DetailingBrushCardCanvas'), { ssr: false });
+const SteeringWheelCanvas = dynamic(() => import('@/components/SteeringWheelCanvas'), { ssr: false });
+const StarlightCardCanvas = dynamic(() => import('@/components/StarlightCardCanvas'), { ssr: false });
+const RacingStripesCardCanvas = dynamic(() => import('@/components/RacingStripesCardCanvas'), { ssr: false });
+const GalaxyCardCanvas = dynamic(() => import('@/components/GalaxyCardCanvas'), { ssr: false });
+const PenCanvas = dynamic(() => import('@/components/PenCanvas'), { ssr: false });
 const CaliperCanvas = dynamic(() => import('@/components/CaliperCanvas'), { ssr: false });
 const RimCanvas = dynamic(() => import('@/components/RimCanvas'), { ssr: false });
 
@@ -71,8 +81,69 @@ export default function Services() {
         <h2 className="section-title">OUR SERVICES</h2>
       </div>
       <div className="services-grid reveal" style={{ transitionDelay: '0.15s' }}>
-        {SERVICES.map((s, idx) => (
-          <div key={s.num} className={`service-card${idx === 9 || idx === 10 ? ' service-card--with-model' : ''}`}>
+        {SERVICES.map((s, idx) => {
+          const serviceSlug =
+            idx === 2 ? '/services/window-tinting' :
+            idx === 5 ? '/services/starlight-headliner' :
+            idx === 6 ? '/services/racing-stripes' :
+            idx === 7 ? '/services/galaxy-ceilings' : null;
+          const hasModel = true;
+          const cardContent = (
+          <div className={`service-card${hasModel ? ' service-card--with-model' : ''}`}>
+            {idx === 0 && (
+              <>
+                <WrapCanvas />
+                <div className="service-model-fade" aria-hidden />
+              </>
+            )}
+            {idx === 1 && (
+              <>
+                <PolishingMachineCardCanvas />
+                <div className="service-model-fade" aria-hidden />
+              </>
+            )}
+            {idx === 2 && (
+              <>
+                <WindowTintCardCanvas />
+                <div className="service-model-fade" aria-hidden />
+              </>
+            )}
+            {idx === 3 && (
+              <>
+                <DetailingBrushCardCanvas />
+                <div className="service-model-fade" aria-hidden />
+              </>
+            )}
+            {idx === 4 && (
+              <>
+                <SteeringWheelCanvas />
+                <div className="service-model-fade" aria-hidden />
+              </>
+            )}
+            {idx === 5 && (
+              <>
+                <StarlightCardCanvas />
+                <div className="service-model-fade" aria-hidden />
+              </>
+            )}
+            {idx === 6 && (
+              <>
+                <RacingStripesCardCanvas />
+                <div className="service-model-fade" aria-hidden />
+              </>
+            )}
+            {idx === 7 && (
+              <>
+                <GalaxyCardCanvas />
+                <div className="service-model-fade" aria-hidden />
+              </>
+            )}
+            {idx === 8 && (
+              <>
+                <PenCanvas />
+                <div className="service-model-fade" aria-hidden />
+              </>
+            )}
             {idx === 9 && (
               <>
                 <CaliperCanvas />
@@ -85,12 +156,20 @@ export default function Services() {
                 <div className="service-model-fade" aria-hidden />
               </>
             )}
-            {idx !== 9 && idx !== 10 && <span className="service-num">{s.num}</span>}
+            <span className="service-num">{s.num}</span>
             <span className="service-name">{s.name}</span>
             <p className="service-desc">{s.desc}</p>
             <span className="service-arrow">→</span>
           </div>
-        ))}
+          );
+          return serviceSlug ? (
+            <Link key={s.num} href={serviceSlug} className="block service-card-link">
+              {cardContent}
+            </Link>
+          ) : (
+            <div key={s.num}>{cardContent}</div>
+          );
+        })}
       </div>
     </section>
   );

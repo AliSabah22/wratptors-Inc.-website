@@ -113,8 +113,8 @@ export default function Contact() {
               </div>
             </div>
             <div className="form-group">
-              <select id="service" name="service" required>
-                <option value="" disabled selected></option>
+              <select id="service" name="service" required defaultValue="">
+                <option value="" disabled></option>
                 {SERVICE_OPTIONS.map((opt) => (
                   <option key={opt} value={opt}>
                     {opt}

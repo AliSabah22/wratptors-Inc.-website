@@ -1,16 +1,19 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { applyModelCorrection, recenterAfterTransform } from '@/lib/modelBounds';
+import { trophyTransforms, modelTargetDisplaySizes, getBreakpoint } from '@/lib/transformConfigs';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function TrophyCanvas() {
   const containerRef = useRef<HTMLDivElement>(null);
   const modelRef = useRef<THREE.Object3D | null>(null);
+  const baseYRef = useRef(0);
   const statsInViewRef = useRef(false);
   const entranceDoneRef = useRef(false);
 
@@ -61,24 +64,22 @@ export default function TrophyCanvas() {
           }
         });
         scene.add(model);
-        const box = new THREE.Box3().setFromObject(model);
-        const size = new THREE.Vector3();
-        const center = new THREE.Vector3();
-        box.getSize(size);
-        box.getCenter(center);
-        model.position.sub(center);
-        const TARGET = 1.35;
-        const maxDim = Math.max(size.x, size.y, size.z) || 1;
-        model.scale.setScalar(TARGET / maxDim);
-        const box2 = new THREE.Box3().setFromObject(model);
-        const center2 = new THREE.Vector3();
-        box2.getCenter(center2);
-        model.position.sub(center2);
-        model.position.y -= 0.3;
-        model.rotation.y = 0;
-        model.rotation.x = -0.1;
+
+        const targetDisplaySize = modelTargetDisplaySizes.trophy;
+        applyModelCorrection(model, { targetDisplaySize });
+        recenterAfterTransform(model);
+
+        const layout = trophyTransforms[getBreakpoint(window.innerWidth)];
+        model.position.x = layout.position[0];
+        model.position.y = layout.position[1];
+        model.position.z = layout.position[2];
+        model.rotation.x = layout.rotation[0];
+        model.rotation.y = layout.rotation[1];
+        model.rotation.z = layout.rotation[2];
+        model.scale.multiplyScalar(layout.scale);
+
+        baseYRef.current = model.position.y;
         modelRef.current = model;
-        (window as unknown as { trophyModel?: THREE.Object3D }).trophyModel = model;
         if (statsInViewRef.current) runEntrance(model);
       },
       (xhr) => {
@@ -111,18 +112,15 @@ export default function TrophyCanvas() {
     let rafId: number;
 
     const animate = () => {
-      if (document.hidden) {
-        rafId = requestAnimationFrame(animate);
-        return;
-      }
+      rafId = requestAnimationFrame(animate);
+      if (document.hidden || !container.contains(renderer.domElement)) return;
       trophyTime += 0.012;
       const model = modelRef.current;
       if (model) {
         model.rotation.y += 0.008;
-        model.position.y = Math.sin(trophyTime * 1.5) * 0.06;
+        model.position.y = baseYRef.current + Math.sin(trophyTime * 1.5) * 0.06;
       }
       renderer.render(scene, camera);
-      rafId = requestAnimationFrame(animate);
     };
     rafId = requestAnimationFrame(animate);
 

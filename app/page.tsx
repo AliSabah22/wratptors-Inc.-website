@@ -4,7 +4,6 @@ import { useState, useCallback, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import CustomCursor from '@/components/CustomCursor';
 import Loader from '@/components/Loader';
-import Nav from '@/components/Nav';
 import Stats from '@/components/Stats';
 
 const Hero = dynamic(() => import('@/components/Hero'), { ssr: false });
@@ -15,7 +14,6 @@ import Reviews from '@/components/Reviews';
 import Financing from '@/components/Financing';
 import Partners from '@/components/Partners';
 import Contact from '@/components/Contact';
-import Footer from '@/components/Footer';
 import { useReveal } from '@/hooks/useReveal';
 
 declare global {
@@ -53,7 +51,6 @@ export default function Home() {
     <>
       <CustomCursor />
       <Loader onFinish={onLoaderFinish} />
-      <Nav />
       <main>
         <Hero />
         <Stats />
@@ -64,7 +61,6 @@ export default function Home() {
         <Financing />
         <Partners />
         <Contact />
-        <Footer />
       </main>
     </>
   );

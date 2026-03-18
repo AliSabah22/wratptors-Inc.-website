@@ -63,14 +63,17 @@ body {
 }
 .loader.hidden { opacity: 0; pointer-events: none; }
 .loader-logo-canvas {
-  width: clamp(280px, 55vw, 420px);
-  height: clamp(280px, 55vw, 420px);
+  width: 280px;
+  height: 180px;
+  flex-shrink: 0;
   position: relative;
 }
-.loader-logo-canvas canvas {
-  width: 100% !important;
-  height: 100% !important;
-  display: block;
+.loader-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(3rem, 8vw, 6rem);
+  letter-spacing: 0.15em;
+  color: var(--gold);
+  text-shadow: 0 0 60px rgba(200,169,110,0.4);
 }
 .loader-bar-wrap {
   width: 200px;
@@ -322,7 +325,7 @@ section { padding: 7rem 8%; }
 #trophy-wrap,
 .trophy-canvas-wrap {
   width: 100%;
-  height: 240px;
+  height: 200px;
   background: linear-gradient(to bottom, rgba(200,169,110,0.04), transparent);
   border-bottom: 1px solid rgba(200,169,110,0.15);
   display: flex;
@@ -458,7 +461,23 @@ section { padding: 7rem 8%; }
   margin-top: 4rem;
   background: var(--border);
   border: 1px solid var(--border);
+  align-items: end;
 }
+/* Wrapper link for service cards that go to a dedicated page — no link styling */
+.service-card-link {
+  text-decoration: none;
+  color: inherit;
+}
+.service-card-link:hover {
+  text-decoration: none;
+  color: inherit;
+}
+.service-card-link .service-num,
+.service-card-link .service-name,
+.service-card-link .service-desc {
+  text-decoration: none;
+}
+
 .service-card {
   background: var(--surface);
   padding: 2.5rem 2rem;
@@ -520,46 +539,72 @@ section { padding: 7rem 8%; }
   transform: translateX(0);
 }
 .service-card--with-model {
-  padding-top: 220px;
+  padding-top: 0;
 }
-#caliper-canvas {
+.service-card--with-model .service-num {
+  margin-top: 230px;
+}
+.service-card--with-model .service-num,
+.service-card--with-model .service-name,
+.service-card--with-model .service-desc {
+  position: relative;
+  z-index: 2;
+}
+
+.service-card-canvas {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  height: 55%;
+  height: 230px;
   z-index: 0;
   pointer-events: none;
+  display: block;
   overflow: hidden;
 }
-#rim-canvas {
+.service-model-fade {
+  position: absolute;
+  top: 180px;
+  left: 0;
+  width: 100%;
+  height: 80px;
+  background: linear-gradient(to bottom, transparent, #0A0A0A);
+  z-index: 1;
+  pointer-events: none;
+}
+#caliper-canvas,
+#rim-canvas,
+#wrap-canvas,
+#shield-canvas,
+#polishing-machine-canvas,
+#window-tint-card-canvas,
+#detailing-brush-canvas,
+#spray-bottle-canvas,
+#steering-wheel-canvas,
+#starlight-card-canvas,
+#stripes-card-canvas,
+#galaxy-card-canvas,
+#pen-canvas {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  height: 55%;
+  height: 230px;
   z-index: 0;
   pointer-events: none;
+  display: block;
+  overflow: hidden;
 }
 .service-model-canvas {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  height: 220px;
+  height: 230px;
   z-index: 0;
   pointer-events: none;
-  will-change: transform;
-}
-.service-model-fade {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 60%;
-  background: linear-gradient(to top, var(--surface) 0%, transparent 100%);
-  z-index: 1;
-  pointer-events: none;
+  display: block;
+  overflow: hidden;
 }
 
 /* LOCATIONS */
@@ -714,8 +759,14 @@ section { padding: 7rem 8%; }
   position: relative;
 }
 .financing-canvas-wrap {
+  width: 480px;
   position: relative;
-  overflow: hidden;
+  flex-shrink: 0;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
   box-shadow: inset 0 0 40px rgba(200,169,110,0.04);
 }
 .card-canvas-label {
@@ -724,7 +775,7 @@ section { padding: 7rem 8%; }
   text-transform: uppercase;
   color: var(--gold);
   opacity: 0.9;
-  margin-top: 1rem;
+  margin-top: 0.75rem;
   text-align: center;
 }
 .financing-inner > div:first-child { text-align: center; }
@@ -1088,4 +1139,23 @@ footer {
   .stats-grid { grid-template-columns: 1fr 1fr; }
   .reviews-header { flex-direction: column; align-items: flex-start; }
   .reviews-rating { text-align: left; }
+}
+
+/* Window Tint scene slider - gold thumb */
+.window-tint-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #C8A96E;
+  cursor: pointer;
+  border: none;
+}
+.window-tint-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #C8A96E;
+  cursor: pointer;
+  border: none;
 }

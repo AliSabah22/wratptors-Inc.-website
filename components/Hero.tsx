@@ -4,8 +4,11 @@ import Link from 'next/link';
 import { useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import gsap from 'gsap';
+import { applyModelCorrection } from '@/lib/modelBounds';
+import { heroCarTransforms, heroGarageConfig, heroCameraConfig, modelTargetDisplaySizes, getBreakpoint } from '@/lib/transformConfigs';
 
 const HERO_TEXTS = [
   { id: 'ht0', title: 'EVERY LEGEND\nSTARTS HERE', sub: "The world's largest vehicle wrap shop", gold: false, cta: false },
@@ -18,12 +21,13 @@ const HERO_TEXTS = [
 
 const THRESHOLDS = [0, 0.2, 0.4, 0.6, 0.75, 0.9];
 
+const CAR_CENTER = { x: 0, y: 0.45, z: 0 };
 const HERO_CAMERA_SEGMENTS = [
-  { x: -2.0, y: 0.9, z: 6.0, lookX: 0.8, lookY: 0.5, lookZ: 0 },
-  { x: 0, y: 5.0, z: 2.5, lookX: 0.8, lookY: 0.5, lookZ: 0 },
-  { x: 3.5, y: 0.9, z: 4.0, lookX: 0, lookY: 0.5, lookZ: 0 },
-  { x: 0, y: 0.6, z: 5.5, lookX: 0.8, lookY: 0.6, lookZ: 0 },
-  { x: 0, y: 0.6, z: 5.5, lookX: 0.8, lookY: 0.6, lookZ: 0 },
+  { x: 0, y: 1.2, z: 6.0, lookX: CAR_CENTER.x, lookY: CAR_CENTER.y, lookZ: CAR_CENTER.z },
+  { x: 0, y: 4.0, z: 2.8, lookX: CAR_CENTER.x, lookY: CAR_CENTER.y, lookZ: CAR_CENTER.z },
+  { x: 3.2, y: 1.2, z: 4.2, lookX: CAR_CENTER.x, lookY: CAR_CENTER.y, lookZ: CAR_CENTER.z },
+  { x: 0, y: 0.8, z: 5.5, lookX: CAR_CENTER.x, lookY: CAR_CENTER.y, lookZ: CAR_CENTER.z },
+  { x: 0, y: 0.8, z: 5.5, lookX: CAR_CENTER.x, lookY: CAR_CENTER.y, lookZ: CAR_CENTER.z },
 ];
 
 export default function Hero() {
@@ -61,10 +65,10 @@ export default function Hero() {
 
     const scene = new THREE.Scene();
     scene.background = null as unknown as THREE.Color;
-    scene.fog = new THREE.FogExp2(0x0a0a0a, 0.06);
-    const camera = new THREE.PerspectiveCamera(42, 1, 0.01, 1000);
-    camera.position.set(-2.0, 0.9, 6.0);
-    camera.lookAt(0.8, 0.5, 0);
+    scene.fog = new THREE.FogExp2(heroGarageConfig.fogColor, heroGarageConfig.fogDensity);
+    const camera = new THREE.PerspectiveCamera(heroCameraConfig.fov, 1, 0.01, 1000);
+    camera.position.set(heroCameraConfig.position[0], heroCameraConfig.position[1], heroCameraConfig.position[2]);
+    camera.lookAt(heroCameraConfig.lookAt[0], heroCameraConfig.lookAt[1], heroCameraConfig.lookAt[2]);
     camera.updateProjectionMatrix();
 
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -76,59 +80,87 @@ export default function Hero() {
     container.appendChild(renderer.domElement);
     renderer.domElement.style.willChange = 'transform';
 
-    scene.add(new THREE.AmbientLight(0x333333, 0.65));
-    const keyLight = new THREE.SpotLight(0xffffff, 0.5);
-    keyLight.position.set(3, 6, 4);
-    keyLight.castShadow = true;
-    keyLight.color.set(0xffffff);
-    (keyLight.shadow as THREE.SpotLightShadow).mapSize.width = 2048;
-    (keyLight.shadow as THREE.SpotLightShadow).mapSize.height = 2048;
-    keyLight.angle = Math.PI / 8;
-    keyLight.penumbra = 0.6;
-    scene.add(keyLight);
-    const fillLight = new THREE.SpotLight(0xc8a96e, 1.2);
-    fillLight.position.set(-4, 3, 2);
-    fillLight.color.set(0xc8a96e);
-    fillLight.angle = Math.PI / 5;
-    fillLight.penumbra = 0.5;
-    scene.add(fillLight);
-    const carFront = new THREE.DirectionalLight(0xffffff, 1.2);
-    carFront.position.set(0, 2, 6);
-    scene.add(carFront);
-    const rimLight = new THREE.SpotLight(0xffe4a0, 1.0);
-    rimLight.position.set(0, 2, -5);
-    rimLight.angle = Math.PI / 6;
-    rimLight.penumbra = 0.5;
-    scene.add(rimLight);
+    scene.add(new THREE.AmbientLight(0x2a2e36, 0.35));
+    const carKeyLight = new THREE.SpotLight(0xffffff, 1.4);
+    carKeyLight.position.set(2, 2, 5);
+    carKeyLight.castShadow = true;
+    carKeyLight.target.position.set(CAR_CENTER.x, CAR_CENTER.y, CAR_CENTER.z);
+    scene.add(carKeyLight);
+    scene.add(carKeyLight.target);
+    (carKeyLight.shadow as THREE.SpotLightShadow).mapSize.width = 2048;
+    (carKeyLight.shadow as THREE.SpotLightShadow).mapSize.height = 2048;
+    carKeyLight.angle = Math.PI / 6;
+    carKeyLight.penumbra = 0.5;
+    const carFill = new THREE.DirectionalLight(0xc8a96e, 0.9);
+    carFill.position.set(-2, 1, 4);
+    scene.add(carFill);
+    const carRim = new THREE.SpotLight(0xffe4a0, 0.8);
+    carRim.position.set(0, 0, -3);
+    carRim.target.position.set(CAR_CENTER.x, CAR_CENTER.y, CAR_CENTER.z);
+    scene.add(carRim);
+    scene.add(carRim.target);
+    carRim.angle = Math.PI / 8;
+    carRim.penumbra = 0.5;
+    const bgAmbient = new THREE.AmbientLight(0x363a42, 0.25);
+    scene.add(bgAmbient);
     const pmremGenerator = new THREE.PMREMGenerator(renderer);
     pmremGenerator.compileEquirectangularShader();
     const envTexture = pmremGenerator.fromScene(new RoomEnvironment()).texture;
     scene.environment = envTexture;
 
-    const shadowGeo = new THREE.PlaneGeometry(4, 2);
-    const shadowMat = new THREE.MeshBasicMaterial({
-      color: 0x000000,
-      transparent: true,
-      opacity: 0.35,
-      depthWrite: false,
-    });
-    const shadow = new THREE.Mesh(shadowGeo, shadowMat);
-    shadow.rotation.x = -Math.PI / 2;
-    shadow.position.y = 0.01;
-    scene.add(shadow);
+    const fbxLoader = new FBXLoader();
+    fbxLoader.setResourcePath('/assets/');
+    fbxLoader.load(
+      '/assets/garage.fbx',
+      (garage) => {
+        const matConfig = heroGarageConfig.material;
+        const useFlat = matConfig.flat !== false;
+        garage.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) {
+            const m = child as THREE.Mesh;
+            m.castShadow = true;
+            m.receiveShadow = true;
+            const mat = useFlat
+              ? new THREE.MeshBasicMaterial({
+                  color: matConfig.color,
+                  depthWrite: true,
+                })
+              : new THREE.MeshStandardMaterial({
+                  color: matConfig.color,
+                  metalness: heroGarageConfig.materialStandard.metalness,
+                  roughness: heroGarageConfig.materialStandard.roughness,
+                  envMapIntensity: heroGarageConfig.materialStandard.envMapIntensity,
+                  emissive: heroGarageConfig.materialStandard.emissive,
+                  emissiveIntensity: heroGarageConfig.materialStandard.emissiveIntensity,
+                });
+            if (!useFlat) (mat as THREE.MeshStandardMaterial).envMap = null;
+            m.material = mat;
+          }
+        });
+        const targetDisplaySize = heroGarageConfig.targetDisplaySize;
+        applyModelCorrection(garage, { targetDisplaySize, groundToZero: true });
+        garage.position.set(heroGarageConfig.position[0], heroGarageConfig.position[1], heroGarageConfig.position[2]);
+        scene.add(garage);
+      },
+      (xhr) => {
+        if (xhr.lengthComputable) console.log('[Hero] Garage:', ((xhr.loaded / xhr.total) * 100).toFixed(0) + '%');
+      },
+      (err) => {
+        console.error('[Hero] Garage model failed to load:', err);
+      }
+    );
 
-    // Golden dust particles: keep Y outside the car's vertical band (car sits ~0.3–1.8)
-    // so particles don't render in front of the car and create "clipping through dust"
+    // Golden dust particles: keep Y outside the car's vertical band (car sits on ground ~0.35–1.8)
     const nParticles = 600;
     const pPos = new Float32Array(nParticles * 3);
-    const carYMin = -0.3;
-    const carYMax = 1.9;
+    const carYMin = -0.2;
+    const carYMax = 1.85;
     for (let i = 0; i < nParticles; i++) {
       pPos[i * 3] = (Math.random() - 0.5) * 28;
       const yRand = Math.random();
       pPos[i * 3 + 1] = yRand < 0.5
-        ? carYMin - Math.random() * 7.5
-        : carYMax + Math.random() * 6.5;
+        ? carYMin - Math.random() * 7
+        : carYMax + Math.random() * 6;
       pPos[i * 3 + 2] = (Math.random() - 0.5) * 28;
     }
     const pGeo = new THREE.BufferGeometry();
@@ -160,8 +192,11 @@ export default function Hero() {
     particlesRef.current = particles;
     particlesPosRef.current = pPos;
 
-    const loader = new GLTFLoader();
-    loader.load(
+    const breakpoint = getBreakpoint(window.innerWidth);
+    const layout = heroCarTransforms[breakpoint];
+
+    const gltfLoader = new GLTFLoader();
+    gltfLoader.load(
       '/assets/hypercar%2B3d%2Bmodel.glb',
       (gltf) => {
         const model = gltf.scene;
@@ -173,31 +208,21 @@ export default function Hero() {
           }
         });
         scene.add(model);
-        const box = new THREE.Box3().setFromObject(model);
-        const center = new THREE.Vector3();
-        const size = new THREE.Vector3();
-        box.getCenter(center);
-        box.getSize(size);
-        model.position.x = -center.x;
-        model.position.z = -center.z;
-        model.position.y = -box.min.y;
-        const targetWidth = 3.2;
-        const scaleF = targetWidth / size.x;
-        model.scale.setScalar(scaleF);
-        model.position.x = 0.8;
-        model.rotation.y = Math.PI * 0.75;
 
-        const finalBox = new THREE.Box3().setFromObject(model);
-        const carBottom = finalBox.min.y;
-        model.position.y += -carBottom + 0.01;
+        const targetDisplaySize = modelTargetDisplaySizes.heroCar;
+        applyModelCorrection(model, { targetDisplaySize, groundToZero: true });
 
-        shadow.scale.x = (finalBox.max.x - finalBox.min.x) * 0.9;
-        shadow.scale.z = (finalBox.max.z - finalBox.min.z) * 1.1;
+        model.position.x = layout.position[0];
+        model.position.y = layout.position[1] + heroGarageConfig.carYOffset;
+        model.position.z = layout.position[2];
+        model.rotation.x = layout.rotation[0];
+        model.rotation.y = layout.rotation[1];
+        model.rotation.z = layout.rotation[2];
+        model.scale.multiplyScalar(layout.scale);
 
         model.castShadow = true;
         carRef.current = model;
         (window as unknown as { heroCarModel?: THREE.Object3D }).heroCarModel = model;
-        console.log('car loaded');
 
         gsap.from(model.rotation, {
           y: model.rotation.y - Math.PI * 1.5,
@@ -215,9 +240,11 @@ export default function Hero() {
         });
       },
       (xhr) => {
-        if (xhr.lengthComputable) console.log('Loading:', ((xhr.loaded / xhr.total) * 100).toFixed(0) + '%');
+        if (xhr.lengthComputable) console.log('[Hero] Car:', ((xhr.loaded / xhr.total) * 100).toFixed(0) + '%');
       },
-      (err) => console.warn('Model failed to load:', err)
+      (err) => {
+        console.error('[Hero] Car model failed to load:', err);
+      }
     );
 
     let mouseX = 0.5;
@@ -287,8 +314,6 @@ export default function Hero() {
       window.removeEventListener('resize', resizeHero);
       window.removeEventListener('mousemove', onMouseMove);
       cancelAnimationFrame(rafId);
-      shadowGeo.dispose();
-      shadowMat.dispose();
       pGeo.dispose();
       (particles.material as THREE.PointsMaterial).map?.dispose();
       (particles.material as THREE.Material).dispose();
