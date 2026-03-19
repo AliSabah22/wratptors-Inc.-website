@@ -2,7 +2,10 @@ import type { Metadata } from 'next';
 import './globals.css';
 import Nav from '@/components/Nav';
 import Footer from '@/components/Footer';
-import CustomCursor from '@/components/CustomCursor';
+import CustomCursor from '@/src/components/ui/CustomCursor';
+import PageLoader from '@/src/components/ui/PageLoader';
+import ScrollProgressBar from '@/src/components/ui/ScrollProgressBar';
+import ScanLine from '@/src/components/ui/ScanLine';
 import PageTransition from '@/src/components/animations/PageTransition';
 
 export const metadata: Metadata = {
@@ -20,6 +23,9 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <CustomCursor />
+        <PageLoader />
+        <ScrollProgressBar />
+        <ScanLine />
         <Nav />
         <PageTransition>{children}</PageTransition>
         <Footer />

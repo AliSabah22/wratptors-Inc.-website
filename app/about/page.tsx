@@ -4,6 +4,9 @@ import Link from 'next/link';
 import type React from 'react';
 import FadeUp from '@/src/components/animations/FadeUp';
 import SlideIn from '@/src/components/animations/SlideIn';
+import ScrambleText from '@/src/components/ui/ScrambleText';
+import ImageReveal from '@/src/components/ui/ImageReveal';
+import MagneticButton from '@/src/components/ui/MagneticButton';
 
 export const metadata = {
   title: "About Wraptors | World's Largest Vehicle Wrap Shop",
@@ -41,6 +44,7 @@ function InstagramIcon({ size = 16 }: { size?: number }) {
 }
 
 function SectionTag({ children }: { children: React.ReactNode }) {
+  const text = typeof children === 'string' ? children : null;
   return (
     <div
       style={{
@@ -51,7 +55,7 @@ function SectionTag({ children }: { children: React.ReactNode }) {
         color: 'var(--gold)',
       }}
     >
-      {children}
+      {text ? <ScrambleText>{text}</ScrambleText> : children}
     </div>
   );
 }
@@ -65,14 +69,17 @@ export default function AboutPage() {
       {/* SECTION 1 — PAGE HERO */}
       <section
         style={{
-          background: '#0A0A0A',
-          padding: '7rem 8%',
-          borderBottom: '1px solid var(--border)',
           position: 'relative',
           overflow: 'hidden',
+          height: '100vh',
+          display: 'flex',
+          alignItems: 'flex-end',
+          paddingBottom: '10vh',
+          paddingLeft: '8%',
+          paddingRight: '8%',
         }}
       >
-        <div style={{ position: 'absolute', inset: 0, zIndex: 0, opacity: 0.2 }}>
+        <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
           <Image
             src="https://www.wraptorsinc.com/wp-content/uploads/2023/02/about-feature1.jpg"
             alt="About Wraptors Background"
@@ -81,10 +88,18 @@ export default function AboutPage() {
             placeholder="blur"
             blurDataURL={blurDataURL}
             style={{ objectFit: 'cover' }}
-            unoptimized={false}
           />
         </div>
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: 1400, margin: '0 auto' }}>
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 1,
+            background: 'linear-gradient(to bottom, rgba(10,10,10,0.2) 0%, rgba(10,10,10,0.5) 60%, rgba(10,10,10,1) 100%)',
+            pointerEvents: 'none',
+          }}
+        />
+        <div style={{ position: 'relative', zIndex: 2, maxWidth: 1400, width: '100%' }}>
           <FadeUp delay={0}>
             <SectionTag>WHO WE ARE</SectionTag>
           </FadeUp>
@@ -113,9 +128,63 @@ export default function AboutPage() {
                 ...fontDM,
               }}
             >
-              Home / About
+              HOME / ABOUT
             </div>
           </FadeUp>
+        </div>
+      </section>
+
+      {/* STAT TICKER */}
+      <section
+        style={{
+          background: '#111111',
+          borderTop: '1px solid #222222',
+          borderBottom: '1px solid #222222',
+          height: 52,
+          overflow: 'hidden',
+          display: 'flex',
+          alignItems: 'center',
+        }}
+        className="stat-ticker"
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '2rem',
+            animation: 'tickerScroll 25s linear infinite',
+            fontFamily: "'Bebas Neue', sans-serif",
+            fontSize: '0.85rem',
+            letterSpacing: '0.2em',
+            color: '#666666',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {[
+            '9,000+ VEHICLES WRAPPED',
+            '·',
+            '10+ YEARS EXPERIENCE',
+            '·',
+            '13 GLOBAL LOCATIONS',
+            '·',
+            'RATED #1 CAR BOUTIQUE',
+            '·',
+          ]
+            .concat([
+              '9,000+ VEHICLES WRAPPED',
+              '·',
+              '10+ YEARS EXPERIENCE',
+              '·',
+              '13 GLOBAL LOCATIONS',
+              '·',
+              'RATED #1 CAR BOUTIQUE',
+              '·',
+            ])
+            .map((item, i) => (
+              <span key={i} style={{ color: item === '·' ? 'var(--gold)' : undefined }}>
+                {item}
+              </span>
+            ))}
         </div>
       </section>
 
@@ -144,8 +213,8 @@ export default function AboutPage() {
           </div>
           </SlideIn>
           <SlideIn direction="right" delay={0.2}>
-          <div style={{ position: 'relative', minHeight: 420 }}>
-            <Link href="/services/vehicle-wrapping" style={{ display: 'block', position: 'relative', width: '100%', height: '100%' }}>
+          <ImageReveal style={{ position: 'relative', minHeight: 420 }}>
+            <Link href="/services/vehicle-wrapping" style={{ display: 'block', position: 'relative', width: '100%', height: '100%', minHeight: 420 }}>
               <Image
                 src="https://www.wraptorsinc.com/wp-content/uploads/2023/02/about-feature1.jpg"
                 alt="Rated Number One Car Boutique - Wraptors"
@@ -153,11 +222,10 @@ export default function AboutPage() {
                 sizes="(max-width: 768px) 100vw, 700px"
                 placeholder="blur"
                 blurDataURL={blurDataURL}
-                unoptimized={false}
                 style={{ objectFit: 'cover' }}
               />
             </Link>
-          </div>
+          </ImageReveal>
           </SlideIn>
         </div>
       </section>

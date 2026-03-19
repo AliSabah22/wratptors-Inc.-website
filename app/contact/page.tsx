@@ -9,6 +9,7 @@ import { useReducedMotion } from 'framer-motion';
 import FadeUp from '@/src/components/animations/FadeUp';
 import FadeIn from '@/src/components/animations/FadeIn';
 import StaggerContainer from '@/src/components/animations/StaggerContainer';
+import ScrambleText from '@/src/components/ui/ScrambleText';
 
 const blurDataURL =
   'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/wAARCAABAAEDASIAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8AJQAB/9k=';
@@ -363,7 +364,7 @@ export default function ContactPage() {
           </div>
 
           <div style={{ fontSize: 10, letterSpacing: '0.35em', textTransform: 'uppercase', color: 'var(--gold)', fontFamily: "'DM Sans', sans-serif" }}>
-            GET IN TOUCH
+            <ScrambleText>GET IN TOUCH</ScrambleText>
           </div>
 
           <FadeUp delay={0.1}>

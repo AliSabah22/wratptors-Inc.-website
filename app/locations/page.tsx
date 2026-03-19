@@ -3,6 +3,7 @@ import { LOCATIONS } from '@/src/data/content';
 import LocationCard from '@/components/LocationCard';
 import PartnerLogos from '@/components/PartnerLogos';
 import FadeUp from '@/src/components/animations/FadeUp';
+import ScrambleText from '@/src/components/ui/ScrambleText';
 
 export const metadata = {
   title: 'Our 13 Global Locations | Wraptors Inc.',
@@ -85,7 +86,7 @@ export default function LocationsPage() {
               marginTop: 12,
             }}
           >
-            FIND US
+            <ScrambleText>FIND US</ScrambleText>
           </div>
           <FadeUp>
             <h1

@@ -4,6 +4,7 @@ import PartnerLogos from '@/components/PartnerLogos';
 import FadeUp from '@/src/components/animations/FadeUp';
 import SlideIn from '@/src/components/animations/SlideIn';
 import StaggerContainer from '@/src/components/animations/StaggerContainer';
+import ScrambleText from '@/src/components/ui/ScrambleText';
 
 export const metadata = {
   title: 'Our Services | Wraptors Inc.',
@@ -147,7 +148,7 @@ function HubSectionTag() {
         fontFamily: "'DM Sans', sans-serif",
       }}
     >
-      WHAT WE DO
+      <ScrambleText>WHAT WE DO</ScrambleText>
     </div>
   );
 }

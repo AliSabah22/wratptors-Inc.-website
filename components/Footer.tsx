@@ -35,6 +35,7 @@ const FOOTER_CONNECT = [
 export default function Footer() {
   return (
     <footer className="footer-with-canvas">
+      <div className="footer-watermark" aria-hidden>WRAPTORS</div>
       <FooterCanvas />
       <div className="footer-grid">
         <div>
