@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import Nav from '@/components/Nav';
 import Footer from '@/components/Footer';
+import CustomCursor from '@/components/CustomCursor';
 import PageTransition from '@/src/components/animations/PageTransition';
 
 export const metadata: Metadata = {
@@ -18,6 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <CustomCursor />
         <Nav />
         <PageTransition>{children}</PageTransition>
         <Footer />
